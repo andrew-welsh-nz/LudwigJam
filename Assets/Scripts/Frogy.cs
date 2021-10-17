@@ -21,6 +21,9 @@ public class Frogy : MonoBehaviour
 
     bool isRotatingLeft = false;
     bool isRotatingRight = false;
+    bool doubleRotateSpeed = false;
+
+    int flyCount = 0;
 
     // Start is called before the first frame update
     void Start()
@@ -74,19 +77,45 @@ public class Frogy : MonoBehaviour
         {
             isRotatingRight = false;
         }
+
+        if(Input.GetKeyDown(KeyCode.LeftShift))
+        {
+            doubleRotateSpeed = true;
+        }
+        else if(Input.GetKeyUp(KeyCode.LeftShift))
+        {
+            doubleRotateSpeed = false;
+        }
     }
 
     private void FixedUpdate()
     {
         if(isRotatingLeft)
         {
-            Quaternion deltaRotation = Quaternion.Euler(new Vector3(0.0f, -turnSpeed, 0.0f) * Time.fixedDeltaTime);
+            Quaternion deltaRotation = Quaternion.Euler(new Vector3(0.0f, doubleRotateSpeed ? -turnSpeed * 2 : -turnSpeed, 0.0f) * Time.fixedDeltaTime);
             rb.MoveRotation(deltaRotation * rb.rotation);
         }
         else if(isRotatingRight)
         {
-            Quaternion deltaRotation = Quaternion.Euler(new Vector3(0.0f, turnSpeed, 0.0f) * Time.fixedDeltaTime);
+            Quaternion deltaRotation = Quaternion.Euler(new Vector3(0.0f, doubleRotateSpeed ? turnSpeed * 2 : turnSpeed, 0.0f) * Time.fixedDeltaTime);
             rb.MoveRotation(deltaRotation * rb.rotation);
+        }
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if(other.CompareTag("Fly"))
+        {
+            Debug.Log("Found Fly!");
+            flyCount++;
+            Destroy(other.gameObject);
+        }
+        else if(other.CompareTag("Home"))
+        {
+            Debug.Log("Depositing Flies!");
+            HomeManager home = other.GetComponent<HomeManager>();
+            home.DepositFlies(flyCount);
+            flyCount = 0;
         }
     }
 }
