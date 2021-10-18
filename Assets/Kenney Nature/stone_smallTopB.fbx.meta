@@ -3,7 +3,12 @@ guid: 21fff5565b016d04685fd915d31f3d3f
 ModelImporter:
   serializedVersion: 20200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Transform
+      assembly: UnityEngine.CoreModule
+      name: path_stoneCorner
+    second: {fileID: 2100000, guid: bb67e181ea01ea7439665bcb31abd81d, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0
