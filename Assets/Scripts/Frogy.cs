@@ -9,6 +9,8 @@ public class Frogy : MonoBehaviour
 
     [SerializeField]
     Canvas frogyCanvas;
+    [SerializeField]
+    GameObject frogObject;
 
     float jumpTimer = 0.0f;
     [SerializeField]
@@ -49,12 +51,14 @@ public class Frogy : MonoBehaviour
 
             // scale based on percent
             frogyCanvas.transform.localScale = new Vector3(1, 1 - (0.5f * jumpPercentage), 1);
+            frogObject.transform.localScale = new Vector3(40, 40, 40 - (20f * jumpPercentage));
         }
         else if(Input.GetKeyUp(KeyCode.Space))
         {
             // Jump
             rb.AddRelativeForce(new Vector3(0.0f, jumpTimer * jumpStrength, jumpTimer * jumpStrength), ForceMode.Impulse);
             frogyCanvas.transform.localScale = new Vector3(1, 1, 1);
+            frogObject.transform.localScale = new Vector3(40, 40, 40);
             jumpTimer = 0;
         }
 
