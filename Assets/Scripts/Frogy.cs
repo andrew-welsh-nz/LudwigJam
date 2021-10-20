@@ -30,6 +30,8 @@ public class Frogy : MonoBehaviour
 
     int flyCount = 0;
 
+    List<GameObject> collectedFlies = new List<GameObject>();
+
     // Start is called before the first frame update
     void Start()
     {
@@ -111,13 +113,23 @@ public class Frogy : MonoBehaviour
         }
     }
 
+    private void OnCollisionEnter(Collision collision)
+    {
+        if (collision.collider.transform.CompareTag("Water"))
+        {
+            Debug.Log("Collided with water!");
+        }
+    }
+
     private void OnTriggerEnter(Collider other)
     {
         if(other.CompareTag("Fly"))
         {
             Debug.Log("Found Fly!");
             flyCount++;
-            Destroy(other.gameObject);
+            other.gameObject.SetActive(false);
+            // Add to array of collected flies
+            collectedFlies.Add(other.gameObject);
         }
         else if(other.CompareTag("Home"))
         {
@@ -125,6 +137,8 @@ public class Frogy : MonoBehaviour
             HomeManager home = other.GetComponent<HomeManager>();
             home.DepositFlies(flyCount);
             flyCount = 0;
+            // Empty array of collected flies
+            collectedFlies.Clear();
         }
     }
 }
