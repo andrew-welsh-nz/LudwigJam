@@ -12,6 +12,9 @@ public class Frogy : MonoBehaviour
     [SerializeField]
     GameObject frogObject;
 
+    [SerializeField]
+    AudioSource jumpAudio;
+
     float jumpTimer = 0.0f;
     [SerializeField]
     float maxJump = 1.0f;
@@ -59,6 +62,8 @@ public class Frogy : MonoBehaviour
             rb.AddRelativeForce(new Vector3(0.0f, jumpTimer * jumpStrength, jumpTimer * jumpStrength), ForceMode.Impulse);
             frogyCanvas.transform.localScale = new Vector3(1, 1, 1);
             frogObject.transform.localScale = new Vector3(40, 40, 40);
+            jumpAudio.pitch = 1 + ((1 - jumpTimer / maxJump) * 0.5f) - Random.Range(0.05f, 0.1f);
+            jumpAudio.Play();
             jumpTimer = 0;
         }
 
