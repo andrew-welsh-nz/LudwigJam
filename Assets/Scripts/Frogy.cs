@@ -60,12 +60,16 @@ public class Frogy : MonoBehaviour
         }
         else if(Input.GetKeyUp(KeyCode.Space))
         {
-            // Jump
-
             // Play leap animation
             frogAnimator.ResetTrigger("PrepareJump");
             frogAnimator.SetBool("IsJumping", true);
 
+            if (jumpTimer / maxJump < 0.2f)
+            {
+                StartCoroutine(ExitJumpEarly());
+            }
+
+            // Jump
             rb.AddRelativeForce(new Vector3(0.0f, jumpTimer * jumpStrength, jumpTimer * jumpStrength), ForceMode.Impulse);
             jumpAudio.pitch = 1 + ((1 - jumpTimer / maxJump) * 0.5f) - Random.Range(0.05f, 0.1f);
             jumpAudio.Play();
@@ -102,6 +106,12 @@ public class Frogy : MonoBehaviour
         }
     }
 
+    IEnumerator ExitJumpEarly()
+    {
+        yield return new WaitForSeconds(0.1f);
+        frogAnimator.SetBool("IsJumping", false);
+    }
+
     private void FixedUpdate()
     {
         if(isRotatingLeft)
@@ -123,14 +133,6 @@ public class Frogy : MonoBehaviour
         if (collision.collider.transform.CompareTag("Water"))
         {
             Debug.Log("Collided with water!");
-        }
-    }
-
-    private void OnCollisionStay(Collision collision)
-    {
-        if(frogAnimator.GetBool("IsJumping"))
-        {
-            frogAnimator.SetBool("IsJumping", false);
         }
     }
 
