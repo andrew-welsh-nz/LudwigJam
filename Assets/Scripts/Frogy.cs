@@ -7,10 +7,13 @@ public class Frogy : MonoBehaviour
 {
     Rigidbody rb;
 
-    [SerializeField]
+    /*[SerializeField]
     Canvas frogyCanvas;
     [SerializeField]
-    GameObject frogObject;
+    GameObject frogObject;*/
+
+    [SerializeField]
+    Animator frogAnimator;
 
     [SerializeField]
     AudioSource jumpAudio;
@@ -43,7 +46,8 @@ public class Frogy : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            // Start Jump
+            // Start Jump Animation
+            frogAnimator.SetTrigger("PrepareJump");
         }
         else if(Input.GetKey(KeyCode.Space))
         {
@@ -53,17 +57,16 @@ public class Frogy : MonoBehaviour
             jumpTimer = Mathf.Clamp(jumpTimer, 0, maxJump);
 
             float jumpPercentage = jumpTimer / maxJump;
-
-            // scale based on percent
-            frogyCanvas.transform.localScale = new Vector3(1, 1 - (0.5f * jumpPercentage), 1);
-            frogObject.transform.localScale = new Vector3(40, 40, 40 - (20f * jumpPercentage));
         }
         else if(Input.GetKeyUp(KeyCode.Space))
         {
             // Jump
+
+            // Play leap animation
+            frogAnimator.ResetTrigger("PrepareJump");
+            frogAnimator.SetBool("IsJumping", true);
+
             rb.AddRelativeForce(new Vector3(0.0f, jumpTimer * jumpStrength, jumpTimer * jumpStrength), ForceMode.Impulse);
-            frogyCanvas.transform.localScale = new Vector3(1, 1, 1);
-            frogObject.transform.localScale = new Vector3(40, 40, 40);
             jumpAudio.pitch = 1 + ((1 - jumpTimer / maxJump) * 0.5f) - Random.Range(0.05f, 0.1f);
             jumpAudio.Play();
             jumpTimer = 0;
@@ -115,9 +118,19 @@ public class Frogy : MonoBehaviour
 
     private void OnCollisionEnter(Collision collision)
     {
+        frogAnimator.SetBool("IsJumping", false);
+
         if (collision.collider.transform.CompareTag("Water"))
         {
             Debug.Log("Collided with water!");
+        }
+    }
+
+    private void OnCollisionStay(Collision collision)
+    {
+        if(frogAnimator.GetBool("IsJumping"))
+        {
+            frogAnimator.SetBool("IsJumping", false);
         }
     }
 
