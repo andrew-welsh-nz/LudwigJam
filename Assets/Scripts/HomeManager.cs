@@ -19,8 +19,8 @@ public class HomeManager : MonoBehaviour
     {
         Debug.Log("Deposited " + _numToDeposit + " flies!");
 
-        // add 1 group of frogs for each fly
-        // Enable 1 random particle each time - two on frog groups 2 and 8
+        // add 2 grous of frogs for each fly
+        // Enable 2 random particles each time - 3 for flies 1 and 3
 
         for(int i = 0; i < _numToDeposit; i++)
         {

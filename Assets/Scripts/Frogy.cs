@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using DG.Tweening;
 
 public class Frogy : MonoBehaviour
 {
@@ -12,18 +13,29 @@ public class Frogy : MonoBehaviour
     [SerializeField]
     GameObject frogObject;*/
 
+    [Header("ANIMATION")]
     [SerializeField]
     Animator frogAnimator;
 
+    [Header("RESPAWN")]
+    [SerializeField]
+    GameObject spawnPoint;
+    [SerializeField]
+    Image fadeImage;
+
+    [Header("AUDIO")]
     [SerializeField]
     AudioSource jumpAudio;
 
+    [Header("JUMP")]
+    bool isJumping = false;
     float jumpTimer = 0.0f;
     [SerializeField]
     float maxJump = 1.0f;
     [SerializeField]
     float jumpStrength = 1.0f;
 
+    [Header("TURN")]
     [SerializeField]
     float turnSpeed = 10.0f;
 
@@ -32,6 +44,8 @@ public class Frogy : MonoBehaviour
     bool doubleRotateSpeed = false;
 
     int flyCount = 0;
+
+    bool isRespawning = false;
 
     List<GameObject> collectedFlies = new List<GameObject>();
 
@@ -44,65 +58,70 @@ public class Frogy : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Space))
+        if (!isRespawning)
         {
-            // Start Jump Animation
-            frogAnimator.SetTrigger("PrepareJump");
-        }
-        else if(Input.GetKey(KeyCode.Space))
-        {
-            // Increase Jump Time
-            jumpTimer += Time.deltaTime;
-
-            jumpTimer = Mathf.Clamp(jumpTimer, 0, maxJump);
-
-            float jumpPercentage = jumpTimer / maxJump;
-        }
-        else if(Input.GetKeyUp(KeyCode.Space))
-        {
-            // Play leap animation
-            frogAnimator.ResetTrigger("PrepareJump");
-            frogAnimator.SetBool("IsJumping", true);
-
-            if (jumpTimer / maxJump < 0.2f)
+            if (Input.GetKeyDown(KeyCode.Space))
             {
-                StartCoroutine(ExitJumpEarly());
+                // Start Jump Animation
+                frogAnimator.SetTrigger("PrepareJump");
+                isJumping = true;
+            }
+            else if (Input.GetKey(KeyCode.Space) && isJumping)
+            {
+                // Increase Jump Time
+                jumpTimer += Time.deltaTime;
+
+                jumpTimer = Mathf.Clamp(jumpTimer, 0, maxJump);
+
+                float jumpPercentage = jumpTimer / maxJump;
+            }
+            else if (Input.GetKeyUp(KeyCode.Space) && isJumping)
+            {
+                isJumping = false;
+                // Play leap animation
+                frogAnimator.ResetTrigger("PrepareJump");
+                frogAnimator.SetBool("IsJumping", true);
+
+                if (jumpTimer / maxJump < 0.2f)
+                {
+                    StartCoroutine(ExitJumpEarly());
+                }
+
+                // Jump
+                rb.AddRelativeForce(new Vector3(0.0f, jumpTimer * jumpStrength, jumpTimer * jumpStrength), ForceMode.Impulse);
+                jumpAudio.pitch = 1 + ((1 - jumpTimer / maxJump) * 0.5f) - Random.Range(0.05f, 0.1f);
+                jumpAudio.Play();
+                jumpTimer = 0;
             }
 
-            // Jump
-            rb.AddRelativeForce(new Vector3(0.0f, jumpTimer * jumpStrength, jumpTimer * jumpStrength), ForceMode.Impulse);
-            jumpAudio.pitch = 1 + ((1 - jumpTimer / maxJump) * 0.5f) - Random.Range(0.05f, 0.1f);
-            jumpAudio.Play();
-            jumpTimer = 0;
-        }
+            if (Input.GetKey(KeyCode.A))
+            {
+                // Rotate left
+                isRotatingLeft = true;
+            }
+            else if (Input.GetKeyUp(KeyCode.A))
+            {
+                isRotatingLeft = false;
+            }
 
-        if (Input.GetKey(KeyCode.A))
-        {
-            // Rotate left
-            isRotatingLeft = true;
-        }
-        else if(Input.GetKeyUp(KeyCode.A))
-        {
-            isRotatingLeft = false;
-        }
+            if (Input.GetKey(KeyCode.D))
+            {
+                // Rotate right
+                isRotatingRight = true;
+            }
+            else if (Input.GetKeyUp(KeyCode.D))
+            {
+                isRotatingRight = false;
+            }
 
-        if(Input.GetKey(KeyCode.D))
-        {
-            // Rotate right
-            isRotatingRight = true;
-        }
-        else if(Input.GetKeyUp(KeyCode.D))
-        {
-            isRotatingRight = false;
-        }
-
-        if(Input.GetKeyDown(KeyCode.LeftShift))
-        {
-            doubleRotateSpeed = true;
-        }
-        else if(Input.GetKeyUp(KeyCode.LeftShift))
-        {
-            doubleRotateSpeed = false;
+            if (Input.GetKeyDown(KeyCode.LeftShift))
+            {
+                doubleRotateSpeed = true;
+            }
+            else if (Input.GetKeyUp(KeyCode.LeftShift))
+            {
+                doubleRotateSpeed = false;
+            }
         }
     }
 
@@ -141,7 +160,26 @@ public class Frogy : MonoBehaviour
             }
 
             collectedFlies.Clear();
+
+            isRespawning = true;
+
+            // Fade in before this, then fade out after
+            fadeImage.DOFade(1.0f, 0.5f).OnComplete(Respawn);
+
+            doubleRotateSpeed = false;
+            isRotatingLeft = false;
+            isRotatingRight = false;
+            isJumping = false;
+            jumpTimer = 0.0f;
         }
+    }
+
+    void Respawn()
+    {
+        rb.velocity = Vector3.zero;
+        transform.position = spawnPoint.transform.position;
+        transform.rotation = spawnPoint.transform.rotation;
+        fadeImage.DOFade(0.0f, 0.5f).SetDelay(0.5f).OnComplete(() => isRespawning = false);
     }
 
     private void OnTriggerEnter(Collider other)
