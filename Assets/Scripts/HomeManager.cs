@@ -26,9 +26,11 @@ public class HomeManager : MonoBehaviour
         {
             numFlies++;
             EnableFrogs();
+            EnableFrogs();
+            EnableEmotes();
             EnableEmotes();
 
-            if(numFlies == 2 || numFlies == 8)
+            if (numFlies == 1 || numFlies == 3)
             {
                 EnableEmotes();
             }
