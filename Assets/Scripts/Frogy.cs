@@ -133,6 +133,14 @@ public class Frogy : MonoBehaviour
         if (collision.collider.transform.CompareTag("Water"))
         {
             Debug.Log("Collided with water!");
+
+            foreach(GameObject fly in collectedFlies)
+            {
+                fly.SetActive(true);
+                flyCount--;
+            }
+
+            collectedFlies.Clear();
         }
     }
 
