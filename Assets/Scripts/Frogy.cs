@@ -56,6 +56,9 @@ public class Frogy : MonoBehaviour
     [SerializeField]
     TextMeshProUGUI flyCountText;
 
+    [SerializeField]
+    GameObject pauseMenu;
+
     float timePassed = 0;
 
     List<GameObject> collectedFlies = new List<GameObject>();
@@ -140,6 +143,12 @@ public class Frogy : MonoBehaviour
             else if (Input.GetKeyUp(KeyCode.LeftShift))
             {
                 doubleRotateSpeed = false;
+            }
+
+            if(Input.GetKeyDown(KeyCode.Escape))
+            {
+                Time.timeScale = 0;
+                pauseMenu.SetActive(true);
             }
         }
     }

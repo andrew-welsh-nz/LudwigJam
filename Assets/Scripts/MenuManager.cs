@@ -3,11 +3,15 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
+using DG.Tweening;
 
 public class MenuManager : MonoBehaviour
 {
     [SerializeField]
     GameObject menuObject;
+
+    [SerializeField]
+    GameObject settingsObject;
 
     [SerializeField]
     GameObject creditsObject;
@@ -18,17 +22,21 @@ public class MenuManager : MonoBehaviour
     [SerializeField]
     Sprite[] staticSprites;
 
+    [SerializeField]
+    CanvasGroup loadingGroup;
+
     public void StartGame()
     {
-        SceneManager.LoadScene(1);
+        loadingGroup.gameObject.SetActive(true);
+        loadingGroup.DOFade(1, 0.5f).OnComplete(() => SceneManager.LoadScene(1));
     }
 
-    public void SwapVisibleScreen()
+    public void SwapVisibleScreen(int _newScreen)
     {
-        StartCoroutine(SwapScreen());
+        StartCoroutine(SwapScreen(_newScreen));
     }
 
-    IEnumerator SwapScreen()
+    IEnumerator SwapScreen(int _newScreen)
     {
         staticImage.sprite = staticSprites[0];
         staticImage.gameObject.SetActive(true);
@@ -37,16 +45,26 @@ public class MenuManager : MonoBehaviour
         staticImage.sprite = staticSprites[1];
         yield return new WaitForSeconds(0.1f);
 
-        // Swap screen
-        if(menuObject.activeSelf)
+        switch(_newScreen)
         {
-            menuObject.SetActive(false);
-            creditsObject.SetActive(true);
-        }
-        else
-        {
-            menuObject.SetActive(true);
-            creditsObject.SetActive(false);
+            // Menu
+            case 0:
+                menuObject.SetActive(true);
+                settingsObject.SetActive(false);
+                creditsObject.SetActive(false);
+                break;
+            // Settings
+            case 1:
+                menuObject.SetActive(false);
+                settingsObject.SetActive(true);
+                creditsObject.SetActive(false);
+                break;
+            // Credits
+            case 2:
+                menuObject.SetActive(false);
+                settingsObject.SetActive(false);
+                creditsObject.SetActive(true);
+                break;
         }
 
         staticImage.sprite = staticSprites[2];
