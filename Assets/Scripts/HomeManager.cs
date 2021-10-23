@@ -1,10 +1,13 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using TMPro;
+using DG.Tweening;
 
 public class HomeManager : MonoBehaviour
 {
     int numFlies = 0;
+    int displayedFlies = 0;
 
     [SerializeField]
     int targetFlies = 10;
@@ -14,6 +17,14 @@ public class HomeManager : MonoBehaviour
 
     [SerializeField]
     ParticleSystem[] emoteParticles;
+
+    [SerializeField]
+    TextMeshProUGUI viewerText;
+
+    private void Update()
+    {
+        viewerText.text = displayedFlies.ToString();
+    }
 
     public void DepositFlies(float _numToDeposit)
     {
@@ -35,6 +46,8 @@ public class HomeManager : MonoBehaviour
                 EnableEmotes();
             }
         }
+
+        DOTween.To(() => displayedFlies, x => displayedFlies = x, numFlies * 20, 2).SetEase(Ease.OutQuart);
 
         if(numFlies == targetFlies)
         {

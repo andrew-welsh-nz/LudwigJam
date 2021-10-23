@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using DG.Tweening;
+using TMPro;
 
 public class Frogy : MonoBehaviour
 {
@@ -44,8 +45,18 @@ public class Frogy : MonoBehaviour
     bool doubleRotateSpeed = false;
 
     int flyCount = 0;
+    int displayedFlies = 0;
 
     bool isRespawning = false;
+
+    [Header("UI")]
+    [SerializeField]
+    TextMeshProUGUI timerText;
+
+    [SerializeField]
+    TextMeshProUGUI flyCountText;
+
+    float timePassed = 0;
 
     List<GameObject> collectedFlies = new List<GameObject>();
 
@@ -58,6 +69,14 @@ public class Frogy : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        timePassed += Time.deltaTime;
+        int hours = (int)timePassed / 3600;
+        int minutes = ((int)timePassed - (hours * 3600)) / 60;
+        int seconds = (int)timePassed - (hours * 3600) - (minutes * 60);
+        timerText.text = hours.ToString() + ":" + minutes.ToString("D2") + ":" + seconds.ToString("D2");
+
+        flyCountText.text = displayedFlies.ToString();
+
         if (!isRespawning)
         {
             if (Input.GetKeyDown(KeyCode.Space))
@@ -188,6 +207,7 @@ public class Frogy : MonoBehaviour
         {
             Debug.Log("Found Fly!");
             flyCount++;
+            DOTween.To(() => displayedFlies, x => displayedFlies = x, flyCount * 20, 2).SetEase(Ease.OutQuart);
             other.gameObject.SetActive(false);
             // Add to array of collected flies
             collectedFlies.Add(other.gameObject);
@@ -198,6 +218,7 @@ public class Frogy : MonoBehaviour
             HomeManager home = other.GetComponent<HomeManager>();
             home.DepositFlies(flyCount);
             flyCount = 0;
+            DOTween.To(() => displayedFlies, x => displayedFlies = x, flyCount * 20, 2).SetEase(Ease.OutQuart);
             // Empty array of collected flies
             collectedFlies.Clear();
         }
