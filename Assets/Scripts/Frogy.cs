@@ -49,6 +49,10 @@ public class Frogy : MonoBehaviour
 
     bool isRespawning = false;
 
+    [Header("PARTICLES")]
+    [SerializeField]
+    ParticleSystem flyParticles;
+
     [Header("UI")]
     [SerializeField]
     TextMeshProUGUI timerText;
@@ -193,6 +197,11 @@ public class Frogy : MonoBehaviour
         if (collision.collider.transform.CompareTag("Water"))
         {
             Debug.Log("Collided with water!");
+
+            if(flyCount != 0)
+            {
+                flyParticles.Play();
+            }
 
             foreach(GameObject fly in collectedFlies)
             {
