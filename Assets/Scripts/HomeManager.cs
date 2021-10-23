@@ -16,10 +16,23 @@ public class HomeManager : MonoBehaviour
     GameObject[] frogGroups;
 
     [SerializeField]
+    float frogDisplayDelay = 0.5f;
+
+    [SerializeField]
     ParticleSystem[] emoteParticles;
 
     [SerializeField]
+    ParticleSystem[] smokeParticles;
+
+    [SerializeField]
     TextMeshProUGUI viewerText;
+
+    AudioSource spawnAudio;
+
+    private void Awake()
+    {
+        spawnAudio = GetComponent<AudioSource>();
+    }
 
     private void Update()
     {
@@ -28,31 +41,50 @@ public class HomeManager : MonoBehaviour
 
     public void DepositFlies(float _numToDeposit)
     {
-        Debug.Log("Deposited " + _numToDeposit + " flies!");
-
-        // add 2 grous of frogs for each fly
-        // Enable 2 random particles each time - 3 for flies 1 and 3
-
-        for(int i = 0; i < _numToDeposit; i++)
+        if (_numToDeposit > 0)
         {
-            numFlies++;
-            EnableFrogs();
-            EnableFrogs();
-            EnableEmotes();
-            EnableEmotes();
+            Debug.Log("Deposited " + _numToDeposit + " flies!");
 
-            if (numFlies == 1 || numFlies == 3)
+            // add 2 grous of frogs for each fly
+            // Enable 2 random particles each time - 3 for flies 1 and 3
+
+            for (int i = 0; i < _numToDeposit; i++)
             {
+                numFlies++;
+                StartCoroutine(WaitToEnableFrogs());
+                StartCoroutine(WaitToEnableFrogs());
                 EnableEmotes();
+                EnableEmotes();
+
+                if (numFlies == 1 || numFlies == 3)
+                {
+                    EnableEmotes();
+                }
+            }
+
+            DOTween.To(() => displayedFlies, x => displayedFlies = x, numFlies * 20, 2).SetEase(Ease.OutQuart);
+
+            // Smoke particles
+            foreach (ParticleSystem smoke in smokeParticles)
+            {
+                Debug.Log("playing smoke");
+                smoke.Play();
+            }
+
+            spawnAudio.Play();
+
+            if (numFlies == targetFlies)
+            {
+                // Game finished!
             }
         }
+    }
 
-        DOTween.To(() => displayedFlies, x => displayedFlies = x, numFlies * 20, 2).SetEase(Ease.OutQuart);
+    IEnumerator WaitToEnableFrogs()
+    {
+        yield return new WaitForSeconds(frogDisplayDelay);
 
-        if(numFlies == targetFlies)
-        {
-            // Game finished!
-        }
+        EnableFrogs();
     }
 
     void EnableFrogs()

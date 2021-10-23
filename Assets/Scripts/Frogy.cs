@@ -195,6 +195,9 @@ public class Frogy : MonoBehaviour
 
     void Respawn()
     {
+        flyCount = 0;
+        displayedFlies = 0;
+
         rb.velocity = Vector3.zero;
         transform.position = spawnPoint.transform.position;
         transform.rotation = spawnPoint.transform.rotation;
