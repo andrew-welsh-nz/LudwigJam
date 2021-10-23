@@ -59,9 +59,20 @@ public class Frogy : MonoBehaviour
     [SerializeField]
     GameObject pauseMenu;
 
+    [SerializeField]
+    CanvasGroup loader;
+
+    [SerializeField]
+    CanvasGroup endGameScreen;
+
+    [SerializeField]
+    TextMeshProUGUI endGameTimer;
+
     float timePassed = 0;
 
     List<GameObject> collectedFlies = new List<GameObject>();
+
+    bool isPlaying = true;
 
     // Start is called before the first frame update
     void Start()
@@ -72,83 +83,85 @@ public class Frogy : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        timePassed += Time.deltaTime;
-        int hours = (int)timePassed / 3600;
-        int minutes = ((int)timePassed - (hours * 3600)) / 60;
-        int seconds = (int)timePassed - (hours * 3600) - (minutes * 60);
-        timerText.text = hours.ToString() + ":" + minutes.ToString("D2") + ":" + seconds.ToString("D2");
-
-        flyCountText.text = displayedFlies.ToString();
-
-        if (!isRespawning)
+        if (isPlaying)
         {
-            if (Input.GetKeyDown(KeyCode.Space))
-            {
-                // Start Jump Animation
-                frogAnimator.SetTrigger("PrepareJump");
-                isJumping = true;
-            }
-            else if (Input.GetKey(KeyCode.Space) && isJumping)
-            {
-                // Increase Jump Time
-                jumpTimer += Time.deltaTime;
+            timePassed += Time.deltaTime;
 
-                jumpTimer = Mathf.Clamp(jumpTimer, 0, maxJump);
+            timerText.text = GetTimerText(timePassed);
 
-                float jumpPercentage = jumpTimer / maxJump;
-            }
-            else if (Input.GetKeyUp(KeyCode.Space) && isJumping)
+
+            flyCountText.text = displayedFlies.ToString();
+
+            if (!isRespawning)
             {
-                isJumping = false;
-                // Play leap animation
-                frogAnimator.ResetTrigger("PrepareJump");
-                frogAnimator.SetBool("IsJumping", true);
-
-                if (jumpTimer / maxJump < 0.2f)
+                if (Input.GetKeyDown(KeyCode.Space))
                 {
-                    StartCoroutine(ExitJumpEarly());
+                    // Start Jump Animation
+                    frogAnimator.SetTrigger("PrepareJump");
+                    isJumping = true;
+                }
+                else if (Input.GetKey(KeyCode.Space) && isJumping)
+                {
+                    // Increase Jump Time
+                    jumpTimer += Time.deltaTime;
+
+                    jumpTimer = Mathf.Clamp(jumpTimer, 0, maxJump);
+
+                    float jumpPercentage = jumpTimer / maxJump;
+                }
+                else if (Input.GetKeyUp(KeyCode.Space) && isJumping)
+                {
+                    isJumping = false;
+                    // Play leap animation
+                    frogAnimator.ResetTrigger("PrepareJump");
+                    frogAnimator.SetBool("IsJumping", true);
+
+                    if (jumpTimer / maxJump < 0.2f)
+                    {
+                        StartCoroutine(ExitJumpEarly());
+                    }
+
+                    // Jump
+                    rb.AddRelativeForce(new Vector3(0.0f, jumpTimer * jumpStrength, jumpTimer * jumpStrength), ForceMode.Impulse);
+                    jumpAudio.pitch = 1 + ((1 - jumpTimer / maxJump) * 0.5f) - Random.Range(0.05f, 0.1f);
+                    jumpAudio.Play();
+                    jumpTimer = 0;
                 }
 
-                // Jump
-                rb.AddRelativeForce(new Vector3(0.0f, jumpTimer * jumpStrength, jumpTimer * jumpStrength), ForceMode.Impulse);
-                jumpAudio.pitch = 1 + ((1 - jumpTimer / maxJump) * 0.5f) - Random.Range(0.05f, 0.1f);
-                jumpAudio.Play();
-                jumpTimer = 0;
-            }
+                if (Input.GetKey(KeyCode.A))
+                {
+                    // Rotate left
+                    isRotatingLeft = true;
+                }
+                else if (Input.GetKeyUp(KeyCode.A))
+                {
+                    isRotatingLeft = false;
+                }
 
-            if (Input.GetKey(KeyCode.A))
-            {
-                // Rotate left
-                isRotatingLeft = true;
-            }
-            else if (Input.GetKeyUp(KeyCode.A))
-            {
-                isRotatingLeft = false;
-            }
+                if (Input.GetKey(KeyCode.D))
+                {
+                    // Rotate right
+                    isRotatingRight = true;
+                }
+                else if (Input.GetKeyUp(KeyCode.D))
+                {
+                    isRotatingRight = false;
+                }
 
-            if (Input.GetKey(KeyCode.D))
-            {
-                // Rotate right
-                isRotatingRight = true;
-            }
-            else if (Input.GetKeyUp(KeyCode.D))
-            {
-                isRotatingRight = false;
-            }
+                if (Input.GetKeyDown(KeyCode.LeftShift))
+                {
+                    doubleRotateSpeed = true;
+                }
+                else if (Input.GetKeyUp(KeyCode.LeftShift))
+                {
+                    doubleRotateSpeed = false;
+                }
 
-            if (Input.GetKeyDown(KeyCode.LeftShift))
-            {
-                doubleRotateSpeed = true;
-            }
-            else if (Input.GetKeyUp(KeyCode.LeftShift))
-            {
-                doubleRotateSpeed = false;
-            }
-
-            if(Input.GetKeyDown(KeyCode.Escape))
-            {
-                Time.timeScale = 0;
-                pauseMenu.SetActive(true);
+                if (Input.GetKeyDown(KeyCode.Escape))
+                {
+                    Time.timeScale = 0;
+                    pauseMenu.SetActive(true);
+                }
             }
         }
     }
@@ -234,5 +247,29 @@ public class Frogy : MonoBehaviour
             // Empty array of collected flies
             collectedFlies.Clear();
         }
+    }
+
+    public void FinishGame()
+    {
+        isPlaying = false;
+
+        float finalTime = timePassed;
+
+        endGameTimer.text = GetTimerText(finalTime);
+
+        loader.gameObject.SetActive(true);
+        endGameScreen.gameObject.SetActive(true);
+
+        loader.DOFade(1.0f, 0.5f);
+        endGameScreen.DOFade(1.0f, 0.5f);
+    }
+
+    string GetTimerText(float _time)
+    {
+        int hours = (int)_time / 3600;
+        int minutes = ((int)_time - (hours * 3600)) / 60;
+        int seconds = (int)_time - (hours * 3600) - (minutes * 60);
+
+        return(hours.ToString() + ":" + minutes.ToString("D2") + ":" + seconds.ToString("D2"));
     }
 }

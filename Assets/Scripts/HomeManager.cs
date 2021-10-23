@@ -9,25 +9,34 @@ public class HomeManager : MonoBehaviour
     int numFlies = 0;
     int displayedFlies = 0;
 
+    [Header("Gameplay")]
     [SerializeField]
-    int targetFlies = 10;
+    int targetFlies = 100;
 
+    [SerializeField]
+    Frogy playerFrog;
+
+    [Header("Frogs")]
     [SerializeField]
     GameObject[] frogGroups;
 
     [SerializeField]
     float frogDisplayDelay = 0.5f;
 
+    [Header("Particles")]
     [SerializeField]
-    ParticleSystem[] emoteParticles;
+    GameObject[] emoteParticles;
 
     [SerializeField]
     ParticleSystem[] smokeParticles;
 
+    [Header("UI")]
     [SerializeField]
     TextMeshProUGUI viewerText;
 
     AudioSource spawnAudio;
+
+    bool finishedGame = false;
 
     private void Awake()
     {
@@ -37,6 +46,14 @@ public class HomeManager : MonoBehaviour
     private void Update()
     {
         viewerText.text = displayedFlies.ToString();
+
+        if (displayedFlies == targetFlies && !finishedGame)
+        {
+            // Game finished!
+            finishedGame = true;
+            Debug.Log("Finished game!");
+            playerFrog.FinishGame();
+        }
     }
 
     public void DepositFlies(float _numToDeposit)
@@ -51,15 +68,8 @@ public class HomeManager : MonoBehaviour
             for (int i = 0; i < _numToDeposit; i++)
             {
                 numFlies++;
-                StartCoroutine(WaitToEnableFrogs());
-                StartCoroutine(WaitToEnableFrogs());
-                EnableEmotes();
-                EnableEmotes();
-
-                if (numFlies == 1 || numFlies == 3)
-                {
-                    EnableEmotes();
-                }
+                StartCoroutine(WaitToEnableFrogs(numFlies));
+                EnableEmotes(numFlies);
             }
 
             DOTween.To(() => displayedFlies, x => displayedFlies = x, numFlies * 20, 2).SetEase(Ease.OutQuart);
@@ -72,44 +82,26 @@ public class HomeManager : MonoBehaviour
             }
 
             spawnAudio.Play();
-
-            if (numFlies == targetFlies)
-            {
-                // Game finished!
-            }
         }
     }
 
-    IEnumerator WaitToEnableFrogs()
+    IEnumerator WaitToEnableFrogs(int _frogIndex)
     {
         yield return new WaitForSeconds(frogDisplayDelay);
 
-        EnableFrogs();
+        EnableFrogs(_frogIndex);
     }
 
-    void EnableFrogs()
+    void EnableFrogs(int _frogIndex)
     {
-        int randomFrogGroup = 0;
-
-        do
-        {
-            randomFrogGroup = Random.Range(0, frogGroups.Length - 1);
-        }
-        while (frogGroups[randomFrogGroup].activeSelf);
-
-        frogGroups[randomFrogGroup].SetActive(true);
+        frogGroups[_frogIndex - 1].SetActive(true);
     }
 
-    void EnableEmotes()
+    void EnableEmotes(int _emoteIndex)
     {
-        int randomParticles = 0;
-
-        do
+        foreach(ParticleSystem particleChild in emoteParticles[_emoteIndex - 1].GetComponentsInChildren<ParticleSystem>())
         {
-            randomParticles = Random.Range(0, emoteParticles.Length - 1);
+            particleChild.Play();
         }
-        while (emoteParticles[randomParticles].isPlaying);
-
-        emoteParticles[randomParticles].Play();
     }
 }

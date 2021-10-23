@@ -75,4 +75,9 @@ public class MenuManager : MonoBehaviour
 
         staticImage.gameObject.SetActive(false);
     }
+
+    public void QuitGame()
+    {
+        Application.Quit();
+    }
 }
