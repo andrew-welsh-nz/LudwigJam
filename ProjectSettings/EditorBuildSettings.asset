@@ -11,4 +11,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/MainScene.unity
     guid: 9fc0d4010bbf28b4594072e72b8655ab
+  - enabled: 0
+    path: Assets/Scenes/TrailerScene.unity
+    guid: 801b28048da66ba4bbbf114cdd9f2aca
   m_configObjects: {}
